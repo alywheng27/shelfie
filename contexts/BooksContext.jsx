@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react'
+import { createContext, useEffect, useState } from 'react'
 import { useUser } from '../hooks/useUser'
 import { supabase } from '../lib/supabase'
 
@@ -9,7 +9,21 @@ export function BooksProvider({ children }) {
   const user = useUser()
   
   async function fetchBooks() {
+    try {
+      const { error, data } = await supabase
+        .from("books")
+        .select("*")
+        .order("created_at", { ascending: true });
 
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      console.log(data)
+      setBooks(data)
+    } catch (error) {
+      console.log(error.message)
+    }
   }
 
   async function fetchBookById(id) {
@@ -17,29 +31,43 @@ export function BooksProvider({ children }) {
   }
 
   async function createBook(bookData) {
-    if (!user) {
-      throw new Error('User must be authenticated to create a book')
+    try {
+      if (!user) {
+        throw new Error('User must be authenticated to create a book')
+      }
+  
+      const { error, data } = await supabase
+        .from("books")
+        .insert({
+          ...bookData,
+          uid: user.user.user.id,
+        })
+        .select()
+        .single()
+      
+      if (error) {
+        throw new Error(error.message)
+      }
+      
+      console.log(data)
+      return data
+    } catch (error) {
+      console.log(error.message)
     }
-    console.log(user.user.user.id)
-    const { error, data } = await supabase
-      .from("books")
-      .insert({
-        ...bookData,
-        uid: user.user.user.id,
-      })
-      .select()
-      .single()
     
-    if (error) {
-      throw new Error(error.message)
-    }
-    
-    return data
   }
 
   async function deleteBook(id) {
 
   }
+
+  useEffect(() => {
+    if (user) {
+      fetchBooks()
+    } else {
+      setBooks([])
+    }
+  }, [user])
 
   return (
     <BooksContext.Provider
