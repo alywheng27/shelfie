@@ -43,13 +43,13 @@ export function UserProvider({ children }) {
     const checkAuthentication = async () => {
         try {
             const currentSession = await supabase.auth.getSession()
-            console.table(currentSession.data.session)
+            // console.log(currentSession.data.session.user)
             setUser(currentSession.data.session)
 
             const {
                 data: { subscription },
             } = supabase.auth.onAuthStateChange((_event, session) => {
-                console.table(session)
+                // console.log(session.user)
                 setUser(session);
             });
         
