@@ -11,13 +11,23 @@ import Spacer from '../../components/Spacer'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
 import { useState } from 'react'
+import { useUser } from '../../hooks/useUser'
 
 const Login = () => {
     const [email, setEmail] = useState()
     const [password, setPassword] = useState()
+    const [error, setError] = useState(null)
 
-    const handleSubmit = () => {
-        console.log('Login form submitted', email, password)
+    const { login } = useUser()
+
+    const handleSubmit = async () => {
+        setError(null)
+
+        try {
+            await login(email, password)
+        } catch (error) {
+            setError(error.message)
+        }
     }
     
     return (
@@ -45,13 +55,16 @@ const Login = () => {
                     secureTextEntry
                 />
 
-                <ThemedButton onPress={handleSubmit}>
-                    <Text style={{ color: '#f2f2f2' }}>Login</Text>
+                <ThemedButton onPress={handleSubmit} style={{ width: '80%' }}>
+                    <Text style={{ textAlign: 'center', color: '#f2f2f2' }}>Login</Text>
                 </ThemedButton>
 
                 <Spacer />
+                {error && <Text style={styles.error}>{error}</Text>}
+
+                <Spacer />
                 <Link href="/register" style={{ textAlign: 'center'}}>
-                    <ThemedText>Register instead</ThemedText>
+                    <ThemedText>Signup for new account.</ThemedText>
                 </Link>
             </ThemedView>
             
@@ -74,4 +87,13 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         marginTop: '70%',
     },
+    error: {
+        color: Colors.warning,
+        padding: 10,
+        backgroundColor: '#f5c1c8',
+        borderColor: Colors.warning,
+        borderWidth1: 1,
+        borderRadius: 6,
+        marginHorizontal: 10,
+    }
 })

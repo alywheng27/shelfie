@@ -1,6 +1,7 @@
 import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableWithoutFeedback } from 'react-native'
 import { useState } from 'react'
 import { Link } from 'expo-router'
+import { useUser } from '../../hooks/useUser'
 
 // Colors
 import { Colors } from '../../constants/Color'
@@ -14,11 +15,20 @@ import ThemedTextInput from '../../components/ThemedTextInput'
 
 
 const Register = () => {
-    const [email, setEmail] = useState()
-    const [password, setPassword] = useState()
+    const [email, setEmail] = useState(null)
+    const [password, setPassword] = useState(null)
+    const [error, setError] = useState(null)
+
+    const { register } = useUser()
   
-    const handleSubmit = () => {
-        console.log('Register form submitted')
+    const handleSubmit = async () => {
+        setError(null)
+
+        try {
+            await register(email, password)
+        } catch (error) {
+            setError(error.message)
+        }
     }
 
     return (
@@ -45,9 +55,12 @@ const Register = () => {
                         secureTextEntry
                     />
 
-                    <ThemedButton onPress={handleSubmit}>
-                        <Text style={{ color: '#f2f2f2' }}>Register</Text>
+                    <ThemedButton onPress={handleSubmit} style={{ width: '80%' }}>
+                        <Text style={{ textAlign: 'center', color: '#f2f2f2' }}>Register</Text>
                     </ThemedButton>
+
+                    <Spacer />
+                    {error && <Text style={styles.error}>{error}</Text>}
 
                     <Spacer />
                     <Link href="/login" style={{ textAlign: 'center'}}>
@@ -73,4 +86,13 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         marginTop: '70%',
     },
+    error: {
+        color: Colors.warning,
+        padding: 10,
+        backgroundColor: '#f5c1c8',
+        borderColor: Colors.warning,
+        borderWidth1: 1,
+        borderRadius: 6,
+        marginHorizontal: 10,
+    }
 })
