@@ -74,7 +74,19 @@ export function BooksProvider({ children }) {
   }
 
   async function deleteBook(id) {
+    try {
+      const { error, data } = await supabase
+        .from("books")
+        .delete()
+        .eq("id", id)
+        .select();
 
+      if (error) {
+        throw new Error(error.message)
+      }
+    } catch (error) {
+      console.log(error.message)
+    }
   }
 
   useEffect(() => {
@@ -91,24 +103,24 @@ export function BooksProvider({ children }) {
             setBooks((prev) => [...prev, newBooks]);
           }
         )
-        // .on(
-        //   "postgres_changes",
-        //   { event: "UPDATE", schema: "public", table: "books" },
-        //   (payload) => {
-        //     const updatedBook = payload.new;
-        //     setBooks((prev) =>
-        //       prev.map((t) => (t.id === updatedBook.id ? updatedBook : t))
-        //     );
-        //   }
-        // )
-        // .on(
-        //   "postgres_changes",
-        //   { event: "DELETE", schema: "public", table: "books" },
-        //   (payload) => {
-        //     const deletedBook = payload.old;
-        //     setBooks((prev) => prev.filter((t) => t.id !== deletedBook.id));
-        //   }
-        // )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "books" },
+          (payload) => {
+            const updatedBook = payload.new;
+            setBooks((prev) =>
+              prev.map((t) => (t.id === updatedBook.id ? updatedBook : t))
+            );
+          }
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "books" },
+          (payload) => {
+            const deletedBook = payload.old;
+            setBooks((prev) => prev.filter((t) => t.id !== deletedBook.id));
+          }
+        )
         .subscribe((status) => {
           console.log("Subscription: ", status);
         });
